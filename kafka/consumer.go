@@ -6,7 +6,13 @@ import (
 )
 
 type Consumer struct {
-	Queue chan string
+	Queue chan *sarama.ConsumerMessage
+}
+
+func NewConsumer(config *Config) *Consumer {
+	return &Consumer{
+		Queue: make(chan *sarama.ConsumerMessage, config.Workers),
+	}
 }
 
 func (c Consumer) Setup(sarama.ConsumerGroupSession) error {
@@ -28,7 +34,7 @@ func (c Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama
 				return nil
 			}
 			session.MarkMessage(message, "")
-			c.Queue <- string(message.Value)
+			c.Queue <- message
 		case <-session.Context().Done():
 			return nil
 		}

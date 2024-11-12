@@ -6,7 +6,6 @@ import (
 	"github.com/IBM/sarama"
 	"log"
 	"sync"
-	"time"
 )
 
 type Connection struct {
@@ -14,20 +13,18 @@ type Connection struct {
 	*Consumer
 	Context context.Context
 	Cancel  context.CancelFunc
+	Handler func(*sarama.ConsumerMessage, int)
 	Wg      *sync.WaitGroup
 }
 
-func NewConnection(config *Config) *Connection {
+func NewConnection(config *Config, consumer *Consumer) *Connection {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	return &Connection{
-		config,
-		&Consumer{
-			make(chan string, config.Workers),
-		},
-		ctx,
-		cancel,
-		&sync.WaitGroup{},
+		Cancel:   cancel,
+		Context:  ctx,
+		Config:   config,
+		Wg:       &sync.WaitGroup{},
+		Consumer: consumer,
 	}
 }
 
@@ -62,13 +59,12 @@ func (c *Connection) Run() error {
 
 	c.Wg.Add(c.Workers)
 	for i := 0; i < c.Workers; i++ {
-		go func() {
+		go func(i int) {
 			defer c.Wg.Done()
 			for row := range c.Queue {
-				log.Printf("dequeue %s", row)
-				time.Sleep(time.Second * 2)
+				c.Handler(row, i)
 			}
-		}()
+		}(i)
 	}
 
 	return nil

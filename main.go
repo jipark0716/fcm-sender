@@ -28,15 +28,14 @@ func init() {
 }
 
 func main() {
-	killSign := make(chan os.Signal, 1)
-	signal.Notify(killSign, os.Interrupt)
-
 	service := initService(args)
 	err := service.Run()
 	if err != nil {
 		panic(err)
 	}
 
+	killSign := make(chan os.Signal, 1)
+	signal.Notify(killSign, os.Interrupt)
 	<-killSign
 	err = service.Shutdown(context.Background())
 	if err != nil {

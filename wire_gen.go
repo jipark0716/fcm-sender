@@ -14,7 +14,8 @@ import (
 // Injectors from wire.go:
 
 func InitFirebaseMessageService(k *kafka.Config, f *firebase.Config) *firebase.MessageService {
-	connection := kafka.NewConnection(k)
+	consumer := kafka.NewConsumer(k)
+	connection := kafka.NewConnection(k, consumer)
 	messageService := firebase.NewMessageService(f, connection)
 	return messageService
 }
