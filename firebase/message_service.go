@@ -1,16 +1,32 @@
 package firebase
 
-import "github.com/jipark0716/fcm-sender/kafka"
+import (
+	"github.com/jipark0716/fcm-sender/kafka"
+	"log"
+)
 
 type MessageService struct {
-	KafkaConfig *kafka.Config
+	FirebaseConfig *Config
+	Consumer       *kafka.Connection
 }
 
-func NewMessageService(config *kafka.Config) *MessageService {
+func NewMessageService(firebaseConfig *Config, consumer *kafka.Connection) *MessageService {
 	return &MessageService{
-		config,
+		firebaseConfig,
+		consumer,
 	}
 }
 
-func (MessageService) Run() {
+func (m *MessageService) Run() error {
+	ch, err := m.Consumer.Consume()
+	if err != nil {
+		log.Printf("consume fail %v", err)
+		return err
+	}
+
+	for row := range ch {
+		println(row)
+	}
+
+	return nil
 }

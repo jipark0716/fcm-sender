@@ -9,6 +9,6 @@ import (
 )
 
 func InitFirebaseMessageService(k *kafka.Config, f *firebase.Config) *firebase.MessageService {
-	wire.Build(firebase.NewMessageService)
+	wire.Build(firebase.NewMessageService, kafka.NewConnection)
 	return &firebase.MessageService{}
 }

@@ -1,5 +1,5 @@
 package common
 
 type Service interface {
-	Run()
+	Run() error
 }

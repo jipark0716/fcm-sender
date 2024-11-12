@@ -11,10 +11,23 @@ type Args struct {
 	FirebaseConfig *firebase.Config
 }
 
+var args *Args
+
+func init() {
+	args = &Args{
+		KafkaConfig: &kafka.Config{
+			Endpoint:      "127.0.0.1:9092",
+			Topic:         "example-topic",
+			ConsumerGroup: "example-consumer",
+		},
+	}
+}
+
 func main() {
-	args := &Args{}
-	service := initService(args)
-	service.Run()
+	err := initService(args).Run()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func initService(args *Args) common.Service {
