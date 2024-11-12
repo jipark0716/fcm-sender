@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/jipark0716/fcm-sender/common"
 	"github.com/jipark0716/fcm-sender/firebase"
 	"github.com/jipark0716/fcm-sender/kafka"
+	"os"
+	"os/signal"
 )
 
 type Args struct {
@@ -19,12 +22,23 @@ func init() {
 			Endpoint:      "127.0.0.1:9092",
 			Topic:         "example-topic",
 			ConsumerGroup: "example-consumer",
+			Workers:       4,
 		},
 	}
 }
 
 func main() {
-	err := initService(args).Run()
+	killSign := make(chan os.Signal, 1)
+	signal.Notify(killSign, os.Interrupt)
+
+	service := initService(args)
+	err := service.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	<-killSign
+	err = service.Shutdown(context.Background())
 	if err != nil {
 		panic(err)
 	}
